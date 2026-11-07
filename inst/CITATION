@@ -1,0 +1,26 @@
+citHeader("To cite multistrata in publications, please cite the methodology paper (forthcoming). Cite the package as well when the software itself is material to the work.")
+
+bibentry(
+  bibtype  = "Unpublished",
+  title    = "Joint Optimum Stratification and Sample Allocation for Multivariate Surveys",
+  author   = c(person(c("Karuna", "G."), "Reddy"),
+               person(c("M.", "G.", "M."), "Khan")),
+  note     = "Upcoming methods paper",
+  textVersion = paste(
+    "Reddy, K. G. and Khan, M. G. M.",
+    "Joint Optimum Stratification and Sample Allocation for Multivariate Surveys.",
+    "Upcoming methods paper.")
+)
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "multistrata: Multivariate Optimum Stratification and Sample Allocation for Surveys",
+  author   = c(person(c("Karuna", "G."), "Reddy"),
+               person(c("M.", "G.", "M."), "Khan")),
+  year     = "2026",
+  note     = "R package version 1.0-1",
+  textVersion = paste(
+    "Reddy, K. G. and Khan, M. G. M. (2026).",
+    "multistrata: Multivariate Optimum Stratification and Sample",
+    "Allocation for Surveys. R package version 1.0-1.")
+)

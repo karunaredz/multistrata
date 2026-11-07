@@ -1,0 +1,78 @@
+Package: multistrata
+Type: Package
+Title: Multivariate Optimum Stratification and Sample Allocation for Surveys
+Version: 1.0-1
+Date: 2026-09-26
+Authors@R: c(
+    person("Karuna G.", "Reddy",
+           email = "karuna.reddy@auckland.ac.nz",
+           role  = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-9467-4668")),
+    person("M. G. M.", "Khan",
+           email  = "khan_m@usp.ac.fj",
+           role   = c("aut"))
+  )
+Author: Karuna G. Reddy [aut, cre] (<https://orcid.org/0000-0002-9467-4668>),
+    M. G. M. Khan [aut]
+Maintainer: Karuna G. Reddy <karuna.reddy@auckland.ac.nz>
+Description: Implements simultaneous multivariate optimum stratification and
+    sample allocation for complex survey designs. The package determines strata
+    boundaries and sample allocation jointly across multiple stratification
+    variables and multiple study variables, minimising a weighted composite
+    variance objective subject to sample-size, cost (with fixed overhead), and
+    coefficient-of-variation constraints. The core algorithm is a multi-start
+    alternating optimisation scheme with monotone descent and formal
+    convergence properties: boundaries
+    are updated by derivative-free
+    COBYLA or, under the parametric mode, by gradient-based SLSQP using the
+    closed-form stratum-weight gradient; allocations are updated by an exact
+    generalised Neyman (water-filling) formula. Stratum weights may be
+    estimated empirically or analytically from thirteen parametric marginal
+    distribution families, extending the univariate stratifyR framework
+    (Reddy and Khan, 2020, <doi:10.1111/anzs.12301>) to the multivariate case.
+    An automatic mode (distributions = "auto") selects the best-fitting
+    family per stratification variable by AIC, optionally delegating to the
+    FitVerse distribution-fitting package when installed.
+    Includes three example survey populations, a design benchmarking tool,
+    and a scientific visualisation function plot_strata() producing boundary
+    diagrams for 1-D through n-D stratification spaces, including a 3-D
+    perspective plot for the bivariate case. Operational helpers support
+    precision-driven ("inverse") design via find_n(), which returns the
+    smallest sample size attaining coefficient-of-variation targets on all
+    study variables; selection of the number of strata via choose_H(); and
+    deployment through assign_strata(), which scores an arbitrary frame, and
+    as_svydesign(), which exports a ready-to-analyse design object for the
+    'survey' package and 'srvyr'. A data-free mode, stratify_multi_density(),
+    builds the design from the marginal densities alone (stratum moments by
+    quadrature) when the stratification variables are the study variables.
+    An interactive 'shiny' application bundled with the package (launched with
+    run_app()) exposes the full workflow without coding.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.1.0)
+Imports:
+    stats,
+    graphics,
+    grDevices,
+    MASS,
+    nloptr (>= 2.0.0)
+Suggests:
+    testthat (>= 3.2.0),
+    knitr,
+    rmarkdown,
+    rgl (>= 0.111.6),
+    survey,
+    FitVerse,
+    shiny,
+    bslib,
+    DT,
+    jsonlite,
+    plotly,
+    readxl,
+    pagedown
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3
+RoxygenNote: 8.0.0

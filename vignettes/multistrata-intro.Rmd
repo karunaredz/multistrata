@@ -1,0 +1,385 @@
+---
+title: "Multivariate Optimum Stratification with multistrata"
+author: "Karuna G. Reddy and M. G. M. Khan"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Multivariate Optimum Stratification with multistrata}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 7, fig.height = 5)
+set.seed(42)
+```
+
+## Overview
+
+`multistrata` solves the *joint* multivariate survey design problem: it
+determines optimal strata boundaries across several stratification variables
+**and** the optimal sample allocation across the resulting strata,
+*simultaneously*, by minimising the weighted composite variance
+
+$$\Phi(\mathbf{B}, \mathbf{n}) \;=\; \sum_{k=1}^{q} \omega_k\,
+V_k(\mathbf{B}, \mathbf{n}),$$
+
+where $V_k$ is the variance of the stratified mean estimator of the $k$-th
+study variable.  The package extends the univariate, density-based
+`stratifyR` framework (Reddy & Khan, 2018) to any number of stratification
+and study variables, and supports both data-based and data-free design
+workflows.
+
+The optimiser is a multi-start alternating scheme (MSAO): a boundary update
+(COBYLA, or gradient-based SLSQP in parametric mode) alternates with a
+closed-form generalised Neyman allocation, and the best of many random starts
+is retained. A Cauchy--Schwarz calculation reports the allocation gap at the
+returned boundaries; it does not certify the non-convex boundary search.
+
+## Two ways to use the package
+
+Everything in this vignette can be driven either from the **R console** (the
+code shown throughout) or from the **bundled interactive application**,
+whichever you prefer. The two are interchangeable because every result the
+app produces is computed by the exported functions documented below.
+
+The package ships a companion \pkg{shiny} application that exposes the entire
+workflow with no coding. Launch it with:
+
+```{r run-app, eval = FALSE}
+library(multistrata)
+run_app()
+```
+
+`run_app()` opens the app in a standalone window (or your default browser). In
+it you (1) choose a data source: a shipped example population, an uploaded
+CSV/Excel frame, a simulated population, or a data-free *densities only*
+specification; (2) select the stratification and study variables and set the
+number of strata per variable, the total sample size or budget, the priority
+weights `omega`, and any coefficient-of-variation targets; (3) pick the weight
+mode (empirical, parametric, or auto-parametric AIC selection) and the solver
+(COBYLA or SLSQP); and (4) run the joint optimiser. Results appear as stratum
+tables, allocation and boundary diagrams, interactive plots, benchmark
+comparisons, `find_n()` and `choose_H()` tools, and an `omega` trade-off
+explorer. Results are downloadable, and the **R Code** tab writes a reproducible
+script that recreates the design with the package alone.
+
+The interface packages are optional (they live in `Suggests`); install them
+once with `install.packages(c("shiny", "bslib", "DT", "jsonlite"))`. The rest
+of this vignette shows the same operations programmatically, which is what you
+will use for scripted, reproducible pipelines.
+
+## A first design (empirical mode)
+
+This mirrors Scenario A of the paper on a smaller population for speed:
+$X_1 \sim \text{LogNormal}(1.0,\,0.75)$, $X_2 \sim \text{Gamma}(2,\,1.5)$,
+with two correlated study variables.
+
+```{r scenarioA-data}
+library(multistrata)
+
+N  <- 4000
+X1 <- rlnorm(N, meanlog = 1.0, sdlog = 0.75)
+X2 <- rgamma(N, shape = 2, rate = 1.5)
+Y1 <- 2.0 * X1 + 0.5 * X2 + rnorm(N, 0, 1.0)
+Y2 <- 0.3 * X1 + 1.8 * X2 + rnorm(N, 0, 1.5)
+pop <- data.frame(X1, X2, Y1, Y2)
+```
+
+```{r empirical-run}
+res_emp <- stratify_multi(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),          # 3 x 3 = 9 strata
+  n_total    = 500,
+  omega      = c(0.5, 0.5),
+  n_starts   = 10
+)
+print(res_emp)
+```
+
+## The parametric mode
+
+When a credible parametric family is available for each stratification
+variable, stratum weights are computed analytically from marginal CDF
+increments (Section 3.5 of the paper).  This smooths the objective surface,
+removes count noise from sparse cells, and typically lowers both the achieved
+composite variance and the optimality gap.
+
+```{r parametric-run}
+dists <- list(
+  X1 = list(family = "lnorm", meanlog = 1.0, sdlog = 0.75),
+  X2 = list(family = "gamma", shape   = 2.0, rate  = 1.5)
+)
+
+res_par <- stratify_multi(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),
+  n_total    = 500,
+  omega      = c(0.5, 0.5),
+  n_starts   = 10,
+  distributions = dists
+)
+print(res_par)
+
+relative_efficiency(res_par$objective, res_emp$objective)
+```
+
+In practice the parameters are estimated from the frame, e.g. with
+`MASS::fitdistr(X1, "lognormal")`, or with a dedicated distribution-fitting
+package such as `FitVerse`.
+
+### Auto-parametric mode
+
+If you prefer to delegate the distributional judgement entirely, pass
+`distributions = "auto"`: each stratification variable is fitted against a
+catalogue of candidate families, scored by AIC using the package's own
+density constructors, and the winner is used for the analytic weights.
+When the `FitVerse` package is installed, its fitting engine competes on the
+shared families and the overall AIC winner is retained.
+
+```{r auto-run}
+res_auto <- stratify_multi(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),
+  n_total    = 500,
+  n_starts   = 10,
+  distributions = "auto"
+)
+# which families were selected, and the full AIC table:
+sapply(res_auto$.meta$distributions, function(d) d$family)
+head(res_auto$.meta$auto_fit)
+```
+
+The standalone fitter is also exported:
+
+```{r auto-fitter, eval = FALSE}
+dl <- fit_distributions(pop[, c("X1", "X2")], verbose = TRUE)
+attr(dl, "chosen")
+```
+
+## Gradient-based boundary search (SLSQP)
+
+Under the parametric mode the weight gradient
+$\partial W_{\mathbf h}/\partial b$ is available in closed form, so the
+boundary sub-problem can also be solved with the gradient-based SLSQP
+algorithm:
+
+```{r slsqp-run}
+res_slsqp <- stratify_multi(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),
+  n_total    = 500,
+  n_starts   = 10,
+  method     = "slsqp",
+  distributions = dists
+)
+res_slsqp$objective
+```
+
+## Constraints: cost and coefficients of variation
+
+Cost-constrained designs replace the sample-size constraint with a budget
+$c_0 + \sum_{\mathbf h} c_{\mathbf h} n_{\mathbf h} \le C^*$
+(Theorem 1(c) of the paper):
+
+```{r cost-run, eval = FALSE}
+res_cost <- stratify_multi(
+  data = pop[, c("X1", "X2")], study_vars = pop[, c("Y1", "Y2")],
+  H_vec = c(3, 3), n_total = 500,
+  constraint = "cost", cost_total = 1200, cost_fixed = 100,
+  cost_per_unit = 2, n_starts = 10
+)
+```
+
+Maximum coefficients of variation per study variable (constraint (C3)) turn
+the allocation step into a convex programme, solved internally by SLSQP.
+Targets must be attainable at the given sample size; a practical way to set
+them is relative to the CVs of an unconstrained baseline design:
+
+```{r cv-run}
+ss  <- res_par$stratum_stats
+cv0 <- design_cv(
+  sigma2  = as.matrix(ss[, c("sigma2_k1", "sigma2_k2")]),
+  mu      = as.matrix(ss[, c("mu_k1", "mu_k2")]),
+  W_h     = ss$W_h,
+  n_alloc = res_par$allocation,
+  N_h     = ss$N_h)
+cv0                                   # CVs of the unconstrained design
+
+res_cv <- stratify_multi(
+  data = pop[, c("X1", "X2")], study_vars = pop[, c("Y1", "Y2")],
+  H_vec = c(3, 3), n_total = 500, n_starts = 5,
+  cv_targets = as.numeric(cv0) * c(0.98, 1.10)  # tighten Y1, relax Y2
+)
+res_cv$cv_achieved
+```
+
+Unattainable targets do not fail: the design is returned with a warning and
+the achieved CVs, so you can judge how much additional sample would be
+needed.
+
+## Inverse design and choosing the number of strata
+
+Two common operational questions have direct helpers. *"What is the smallest
+sample that meets my precision targets?"* is answered by `find_n()`, which
+bisects the total sample size subject to coefficient-of-variation targets on
+every study variable (reusing the CV-constrained allocation machinery):
+
+```{r find-n, eval = FALSE}
+fn <- find_n(pop[, c("X1", "X2")], pop[, c("Y1", "Y2")],
+             cv_targets = c(0.05, 0.05), result = res_par)
+fn          # smallest feasible n, the allocation, and the achieved CVs
+```
+
+*"How many strata should I use?"* is answered by `choose_H()`, which traces
+$\Phi^\*$ across candidate grids and flags the elbow beyond which further
+subdivision buys little precision:
+
+```{r choose-h, eval = FALSE}
+ch <- choose_H(pop[, c("X1", "X2")], pop[, c("Y1", "Y2")],
+               n_total = 400, H_each = 2:5, plot = TRUE)
+ch$recommended
+```
+
+## Deploying a design: scoring a frame and exporting to survey
+
+Once a design is estimated it is reused operationally. `assign_strata()`
+scores any frame (the estimation frame, a fresh census extract, hold-out data)
+into the optimal strata, and `as_svydesign()` turns a drawn sample into a
+ready-to-analyse object for the **survey** package (or, with
+`frame_only = TRUE`, a data frame for **srvyr**), attaching the design weights
+$N_h/n_h$ and finite-population corrections:
+
+```{r deploy, eval = FALSE}
+strata <- assign_strata(res_par, pop[, c("X1", "X2")])   # factor of stratum labels
+des    <- as_svydesign(res_par, sample_data = my_sample) # survey.design object
+```
+
+## Data-free density mode
+
+When the stratification variables are *themselves* the study variables, the
+design can be built from the marginal densities alone, with **no population
+data frame at all**. `stratify_multi_density()` computes the stratum weights
+from the marginal CDFs and the stratum means and variances by quadrature of the
+marginal densities, then runs the same optimiser as `stratify_multi()`. This is
+the exact analogue of the density-based LINGO formulation, free of sampling
+noise; the empirical mode converges to it as $N \to \infty$.
+
+```{r density, eval = FALSE}
+# Exponential(1) x right-triangular(0,2), 4 x 3 = 12 strata, N = 2000, n = 700,
+# with no data supplied, only the densities and their supports.
+res_den <- stratify_multi_density(
+  distributions = list(x = list(family = "exp",    rate = 1),
+                       y = list(family = "triang", a = 0, b = 2, c = 0)),
+  H_vec   = c(4, 3), n_total = 700, N = 2000,
+  ranges  = list(c(0, 10), c(0, 2)))
+print(res_den)
+res_den$boundaries
+```
+
+Supply `ranges` to fix a truncated support (here the exponential is capped at
+10); otherwise each range defaults to the family's extreme quantiles.
+`print()` and `summary()` apply as usual, but `plot_strata()` does not, there
+is no realised data to scatter.
+
+The density workflow has the same downstream decision helpers as the
+empirical workflow. These are useful when no microdata are available but the
+survey designer still needs to justify the design against simpler alternatives,
+choose a sample size, decide how many strata to use, or check sensitivity to
+priority weights.
+
+```{r density-helpers, eval = FALSE}
+# Benchmark against proportional, equal and density-quantile + Neyman designs.
+benchmark_density_designs(result_joint = res_den)
+
+# Smallest n that satisfies target CVs for both variables.
+fn_den <- find_n_density(result = res_den, cv_targets = c(0.05, 0.05))
+fn_den$n
+
+# Trace the optimum as the number of strata per variable increases.
+ch_den <- choose_H_density(
+  distributions = list(x = list(family = "exp",    rate = 1),
+                       y = list(family = "triang", a = 0, b = 2, c = 0)),
+  n_total = 700, N = 2000, H_each = 2:5,
+  ranges = list(c(0, 10), c(0, 2)),
+  plot = TRUE)
+ch_den$recommended
+
+# Sweep the priority weight assigned to the first variable.
+omega_sweep_density(
+  distributions = list(x = list(family = "exp",    rate = 1),
+                       y = list(family = "triang", a = 0, b = 2, c = 0)),
+  H_vec = c(4, 3), n_total = 700, N = 2000,
+  ranges = list(c(0, 10), c(0, 2)),
+  grid = seq(0.1, 0.9, length.out = 5))
+```
+
+## Benchmarking against simpler designs
+
+`benchmark_designs()` operationalises Lemma 1 of the paper: sequential
+procedures (boundaries first, allocation second) are in general strictly
+sub-optimal relative to the joint optimum.
+
+```{r benchmark}
+bench <- benchmark_designs(
+  data       = pop[, c("X1", "X2")],
+  study_vars = pop[, c("Y1", "Y2")],
+  H_vec      = c(3, 3),
+  n_total    = 500,
+  omega      = c(0.5, 0.5),
+  result_joint = res_par
+)
+bench
+```
+
+## Visualising the design
+
+```{r plot, fig.alt = "Two-panel stratification boundary plot"}
+plot_strata(res_par, data = pop[, c("X1", "X2")],
+            study_vars = pop[, c("Y1", "Y2")])
+```
+
+## Shipped example populations
+
+Three fictitious populations are included for experimentation:
+`pacific_agri` (8000 farms; the real-data application of the paper),
+`business_survey` (5000 enterprises) and `health_survey` (6000 individuals).
+
+```{r data-example, eval = FALSE}
+data(pacific_agri)
+res_agri <- stratify_multi(
+  data       = pacific_agri[, c("land_area", "labour_units")],
+  study_vars = pacific_agri[, c("crop_yield", "livestock_value", "expenditure")],
+  H_vec      = c(4, 3),
+  n_total    = 600,
+  omega      = c(0.4, 0.4, 0.2),
+  distributions = list(
+    land_area    = list(family = "lnorm", meanlog = 0.9,  sdlog = 0.85),
+    labour_units = list(family = "gamma", shape   = 2.2,  rate  = 0.9)
+  )
+)
+```
+
+## Companion Shiny application
+
+An interactive application built on this package ships **inside the package itself**, installed under `inst/shiny/`. It exposes the full
+workflow, data upload or simulation, both weight modes (including
+auto-parametric selection with a per-variable AIC table), all constraint
+types, and both solvers, plus interactive visualisations that go beyond
+the static figures here: a boundary map with per-stratum annotations, a
+rotatable 3-D explorer with boundary planes, kernel-density contours, a 3-D
+density ridge with FitVerse best-fit overlays, scatter-plot matrices for
+$p \ge 3$, an $\omega$ trade-off explorer, and a generator for reproducible
+R scripts. A dedicated *Densities only* data source runs the data-free mode
+described above, with matching joint-density boundary maps, 3-D density
+surfaces and contours in place of the data-cloud views. Launch it with `run_app()`, as shown at the top of this vignette.
+
+## References
+
+Reddy, K. G. & Khan, M. G. M. (2018). stratifyR: An R Package for optimal
+stratification and sample allocation for univariate populations.
+*Australian & New Zealand Journal of Statistics*.

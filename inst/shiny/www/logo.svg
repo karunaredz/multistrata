@@ -1,0 +1,76 @@
+<svg viewBox="0 0 512 588" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="multistrata">
+  <defs>
+    <linearGradient id="border" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2DD4BF"/>
+      <stop offset="0.55" stop-color="#12B3A6"/>
+      <stop offset="1" stop-color="#5B6CF0"/>
+    </linearGradient>
+    <linearGradient id="frontFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2DD4BF" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="backFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5B6CF0" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#5B6CF0" stop-opacity="0.70"/>
+    </linearGradient>
+    <clipPath id="clipFront"><path d="M100,350 C140,350 150,205 180,195 C210,185 240,270 290,315 C330,340 370,349 400,350 Z"/></clipPath>
+    <clipPath id="clipBack"><path d="M140,300 C180,300 190,170 220,162 C248,155 275,235 320,272 C360,292 405,299 440,300 Z"/></clipPath>
+  </defs>
+
+  <!-- Hexagon (pointy-top) -->
+  <polygon points="256,16 496,155 496,433 256,572 16,433 16,155"
+           fill="#12294B" stroke="url(#border)" stroke-width="17"
+           stroke-linejoin="round"/>
+
+  <!-- Perspective floor (receding depth) -->
+  <polygon points="100,350 400,350 440,300 140,300"
+           fill="#8FB0D9" fill-opacity="0.06"/>
+  <g stroke="#8FB0D9" stroke-opacity="0.20" stroke-width="1.3">
+    <line x1="100" y1="350" x2="140" y2="300"/>
+    <line x1="175" y1="350" x2="215" y2="300"/>
+    <line x1="250" y1="350" x2="290" y2="300"/>
+    <line x1="325" y1="350" x2="365" y2="300"/>
+    <line x1="400" y1="350" x2="440" y2="300"/>
+  </g>
+
+  <!-- Back density curve (behind) with its strata cuts -->
+  <path d="M140,300 C180,300 190,170 220,162 C248,155 275,235 320,272 C360,292 405,299 440,300 Z"
+        fill="url(#backFill)"/>
+  <g clip-path="url(#clipBack)" stroke="#EAF6FF" stroke-opacity="0.7" stroke-width="2">
+    <line x1="190" y1="300" x2="190" y2="150"/>
+    <line x1="245" y1="300" x2="245" y2="150"/>
+    <line x1="315" y1="300" x2="315" y2="150"/>
+  </g>
+  <path d="M140,300 C180,300 190,170 220,162 C248,155 275,235 320,272 C360,292 405,299 440,300"
+        fill="none" stroke="#A9B8FF" stroke-width="2.4"/>
+
+  <!-- Depth connectors (boundary walls receding) -->
+  <g stroke="#EABF6B" stroke-opacity="0.45" stroke-width="1.6" stroke-dasharray="3 4">
+    <line x1="150" y1="350" x2="190" y2="300"/>
+    <line x1="205" y1="350" x2="245" y2="300"/>
+    <line x1="275" y1="350" x2="315" y2="300"/>
+  </g>
+
+  <!-- Front density curve with its strata cuts -->
+  <path d="M100,350 C140,350 150,205 180,195 C210,185 240,270 290,315 C330,340 370,349 400,350 Z"
+        fill="url(#frontFill)"/>
+  <g clip-path="url(#clipFront)" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2.4">
+    <line x1="150" y1="350" x2="150" y2="150"/>
+    <line x1="205" y1="350" x2="205" y2="150"/>
+    <line x1="275" y1="350" x2="275" y2="150"/>
+  </g>
+  <path d="M100,350 C140,350 150,205 180,195 C210,185 240,270 290,315 C330,340 370,349 400,350"
+        fill="none" stroke="#7FF0E1" stroke-width="3"/>
+
+  <!-- Wordmark -->
+  <text x="256" y="432" text-anchor="middle"
+        font-family="Inter, 'Helvetica Neue', Arial, sans-serif"
+        font-size="46" font-weight="800" letter-spacing="-1">
+    <tspan fill="#FFFFFF">multi</tspan><tspan fill="#2DD4BF">strata</tspan>
+  </text>
+  <text x="256" y="466" text-anchor="middle"
+        font-family="Inter, 'Helvetica Neue', Arial, sans-serif"
+        font-size="15" font-weight="700" letter-spacing="2" fill="#8FB0D9">
+    MULTIVARIATE STRATIFICATION
+  </text>
+</svg>

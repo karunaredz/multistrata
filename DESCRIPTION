@@ -48,6 +48,8 @@ Description: Implements simultaneous multivariate optimum stratification and
     An interactive 'shiny' application bundled with the package (launched with
     run_app()) exposes the full workflow without coding.
 License: GPL-3
+URL: https://github.com/karunaredz/multistrata
+BugReports: https://github.com/karunaredz/multistrata/issues
 Encoding: UTF-8
 LazyData: true
 Depends:

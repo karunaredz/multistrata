@@ -2,7 +2,7 @@ Package: multistrata
 Type: Package
 Title: Multivariate Optimum Stratification and Sample Allocation for Surveys
 Version: 1.0-1
-Date: 2026-09-26
+Date: 2026-11-08
 Authors@R: c(
     person("Karuna G.", "Reddy",
            email = "karuna.reddy@auckland.ac.nz",
@@ -24,15 +24,15 @@ Description: Implements simultaneous multivariate optimum stratification and
     alternating optimisation scheme with monotone descent and formal
     convergence properties: boundaries
     are updated by derivative-free
-    COBYLA or, under the parametric mode, by gradient-based SLSQP using the
+    'COBYLA' or, under the parametric mode, by gradient-based 'SLSQP' using the
     closed-form stratum-weight gradient; allocations are updated by an exact
     generalised Neyman (water-filling) formula. Stratum weights may be
     estimated empirically or analytically from thirteen parametric marginal
-    distribution families, extending the univariate stratifyR framework
+    distribution families, extending the univariate 'stratifyR' framework
     (Reddy and Khan, 2020, <doi:10.1111/anzs.12301>) to the multivariate case.
     An automatic mode (distributions = "auto") selects the best-fitting
     family per stratification variable by AIC, optionally delegating to the
-    FitVerse distribution-fitting package when installed.
+    'FitVerse' distribution-fitting package when installed.
     Includes three example survey populations, a design benchmarking tool,
     and a scientific visualisation function plot_strata() producing boundary
     diagrams for 1-D through n-D stratification spaces, including a 3-D

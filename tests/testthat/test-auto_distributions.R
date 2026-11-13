@@ -1,6 +1,7 @@
 # Tests for the auto-parametric mode (fit_distributions) --------------------
 
 test_that("fit_distributions recovers the true families by AIC", {
+  skip_on_cran()
   set.seed(101)
   X <- data.frame(
     A = rlnorm(3000, meanlog = 1.0, sdlog = 0.75),
@@ -22,6 +23,7 @@ test_that("fit_distributions recovers the true families by AIC", {
 })
 
 test_that("Pareto tail data selects the pareto family", {
+  skip_on_cran()
   set.seed(102)
   x <- data.frame(P = 1.5 * (1 - runif(4000))^(-1 / 2.8))
   ch <- attr(fit_distributions(x, engine = "builtin"), "chosen")
@@ -29,6 +31,7 @@ test_that("Pareto tail data selects the pareto family", {
 })
 
 test_that("stratify_multi(distributions = 'auto') runs end-to-end", {
+  skip_on_cran()
   skip_if_not_installed("nloptr")
   set.seed(103)
   pop <- sim_population(N = 1500, p = 2, q = 2, scenario = "skewed")
@@ -43,6 +46,7 @@ test_that("stratify_multi(distributions = 'auto') runs end-to-end", {
 })
 
 test_that("fitverse engine errors cleanly when FitVerse is absent", {
+  skip_on_cran()
   if (requireNamespace("FitVerse", quietly = TRUE)) {
     dl <- fit_distributions(
       data.frame(A = rlnorm(2000, 1, 0.6)), engine = "fitverse")
@@ -73,6 +77,7 @@ seed_fixture <- function(N = 12000) {
 }
 
 test_that("fit_distributions leaves the caller's RNG stream untouched", {
+  skip_on_cran()
   pop <- seed_fixture()
   X <- as.matrix(pop[, c("X1", "X2")])
   # N = 12000 > the default max_fit_n = 8000, so the subsample branch fires.
@@ -91,6 +96,7 @@ test_that("fit_distributions leaves the caller's RNG stream untouched", {
 })
 
 test_that("the caller's seed governs an auto-mode design", {
+  skip_on_cran()
   pop <- seed_fixture()
   X <- as.matrix(pop[, c("X1", "X2")])
   Y <- as.matrix(pop[, c("Y1", "Y2")])
@@ -110,6 +116,7 @@ test_that("the caller's seed governs an auto-mode design", {
 })
 
 test_that("auto-mode family selection is stable across seeds", {
+  skip_on_cran()
   pop <- seed_fixture()
   X <- as.matrix(pop[, c("X1", "X2")])
   fit <- function(s) { set.seed(s); fit_distributions(X) }

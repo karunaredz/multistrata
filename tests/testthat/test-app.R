@@ -1,4 +1,5 @@
 test_that("run_app() is exported and validates its port without launching", {
+  skip_on_cran()
   skip_if_no_app()
   testthat::skip_if_not_installed("jsonlite")
   expect_true(is.function(run_app))
@@ -6,6 +7,7 @@ test_that("run_app() is exported and validates its port without launching", {
 })
 
 test_that("input snapshots retain only settings relevant to the active source", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   base <- list(
@@ -31,6 +33,7 @@ test_that("input snapshots retain only settings relevant to the active source", 
 })
 
 test_that("input snapshots span every variable, not just the first four", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
 
@@ -62,6 +65,7 @@ test_that("input snapshots span every variable, not just the first four", {
 })
 
 test_that("design validation rejects infeasible allocations and budgets", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   expect_invisible(app_env$.validate_design_setup(1000, c(3, 3), 100, 2))
@@ -75,6 +79,7 @@ test_that("design validation rejects infeasible allocations and budgets", {
 })
 
 test_that("distribution validation catches invalid parameterisations", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   expect_invisible(app_env$.validate_distribution_spec(
@@ -88,6 +93,7 @@ test_that("distribution validation catches invalid parameterisations", {
 })
 
 test_that("analysis frame validation rejects non-finite and constant X data", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   x <- cbind(X1 = 1:10, X2 = seq(2, 20, 2))
@@ -100,6 +106,7 @@ test_that("analysis frame validation rejects non-finite and constant X data", {
 })
 
 test_that("a built-in design runs through the app server", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   shiny::testServer(app_env$server, {
@@ -118,6 +125,7 @@ test_that("a built-in design runs through the app server", {
 })
 
 test_that("an invalid sample size is reported without replacing a prior result", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   shiny::testServer(app_env$server, {
@@ -139,6 +147,7 @@ test_that("an invalid sample size is reported without replacing a prior result",
 })
 
 test_that("density mode drives benchmark, sample size, strata trace and omega sweep", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   shiny::testServer(app_env$server, {
@@ -191,6 +200,7 @@ test_that("density mode drives benchmark, sample size, strata trace and omega sw
 })
 
 test_that("the generated script reproduces the design the app displayed", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   shown <- NULL; script <- NULL
@@ -229,6 +239,7 @@ test_that("the generated script reproduces the design the app displayed", {
 })
 
 test_that("changing the seed marks the results stale", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   shiny::testServer(app_env$server, {
@@ -244,6 +255,7 @@ test_that("changing the seed marks the results stale", {
 })
 
 test_that("changing an input raises the stale-results banner", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   shiny::testServer(app_env$server, {
@@ -257,6 +269,7 @@ test_that("changing an input raises the stale-results banner", {
 })
 
 test_that("the Deploy tab scores a frame and attaches valid design weights", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   out <- NULL
@@ -295,6 +308,7 @@ test_that("the Deploy tab scores a frame and attaches valid design weights", {
 })
 
 test_that("the Deploy tab reports a missing or unusable frame instead of failing", {
+  skip_on_cran()
   skip_if_no_app()
   app_env <- load_app_env()
   err <- NULL
@@ -313,6 +327,7 @@ test_that("the Deploy tab reports a missing or unusable frame instead of failing
 })
 
 test_that("the app degrades rather than fails when 'plotly' is unavailable", {
+  skip_on_cran()
   skip_if_no_app()
 
   # plotly is a Suggests: the app must still load, build its server, and
@@ -345,6 +360,7 @@ test_that("the app degrades rather than fails when 'plotly' is unavailable", {
 })
 
 test_that("plotly verbs resolve to the plotly namespace when it is installed", {
+  skip_on_cran()
   skip_if_no_app()
   testthat::skip_if_not_installed("plotly")
 

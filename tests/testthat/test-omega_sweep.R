@@ -48,6 +48,11 @@ test_that("omega_sweep renormalises weights so w tracks the requested share", {
 })
 
 test_that("omega_sweep trades precision between the two study variables", {
+  # Numerical-property test. On a coarse 2x2 grid over a correlated population
+  # the two CVs are nearly flat, so the trade-off can reverse by a hair under a
+  # different optimiser build or BLAS. Skip on CRAN (its many platforms vary)
+  # and keep a small tolerance for local runs.
+  skip_on_cran()
   set.seed(23)
   pop <- make_sweep_pop()
   sw <- omega_sweep(
@@ -59,10 +64,13 @@ test_that("omega_sweep trades precision between the two study variables", {
     n_starts   = 2,
     max_iter   = 30)
 
-  # Shifting priority onto Y1 must not make Y1's CV worse while also
-  # improving Y2's: the sweep exists to expose a trade-off.
-  expect_lte(sw$cv1[2], sw$cv1[1])
-  expect_gte(sw$cv2[2], sw$cv2[1])
+  # Shifting priority onto Y1 should not worsen Y1's CV, and should not improve
+  # Y2's: the sweep exists to expose a trade-off. The tolerance absorbs
+  # optimiser and platform numerical noise.
+  tol1 <- 1e-2 * sw$cv1[1]
+  tol2 <- 1e-2 * sw$cv2[1]
+  expect_lte(sw$cv1[2], sw$cv1[1] + tol1)
+  expect_gte(sw$cv2[2], sw$cv2[1] - tol2)
 })
 
 test_that("omega_sweep agrees with a hand-rolled stratify_multi sweep", {

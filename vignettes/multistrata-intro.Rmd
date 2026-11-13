@@ -78,7 +78,7 @@ with two correlated study variables.
 ```{r scenarioA-data}
 library(multistrata)
 
-N  <- 4000
+N  <- 800
 X1 <- rlnorm(N, meanlog = 1.0, sdlog = 0.75)
 X2 <- rgamma(N, shape = 2, rate = 1.5)
 Y1 <- 2.0 * X1 + 0.5 * X2 + rnorm(N, 0, 1.0)
@@ -93,7 +93,7 @@ res_emp <- stratify_multi(
   H_vec      = c(3, 3),          # 3 x 3 = 9 strata
   n_total    = 500,
   omega      = c(0.5, 0.5),
-  n_starts   = 10
+  n_starts   = 3
 )
 print(res_emp)
 ```
@@ -118,7 +118,7 @@ res_par <- stratify_multi(
   H_vec      = c(3, 3),
   n_total    = 500,
   omega      = c(0.5, 0.5),
-  n_starts   = 10,
+  n_starts   = 3,
   distributions = dists
 )
 print(res_par)
@@ -145,7 +145,7 @@ res_auto <- stratify_multi(
   study_vars = pop[, c("Y1", "Y2")],
   H_vec      = c(3, 3),
   n_total    = 500,
-  n_starts   = 10,
+  n_starts   = 3,
   distributions = "auto"
 )
 # which families were selected, and the full AIC table:
@@ -173,7 +173,7 @@ res_slsqp <- stratify_multi(
   study_vars = pop[, c("Y1", "Y2")],
   H_vec      = c(3, 3),
   n_total    = 500,
-  n_starts   = 10,
+  n_starts   = 3,
   method     = "slsqp",
   distributions = dists
 )
@@ -212,7 +212,7 @@ cv0                                   # CVs of the unconstrained design
 
 res_cv <- stratify_multi(
   data = pop[, c("X1", "X2")], study_vars = pop[, c("Y1", "Y2")],
-  H_vec = c(3, 3), n_total = 500, n_starts = 5,
+  H_vec = c(3, 3), n_total = 500, n_starts = 3,
   cv_targets = as.numeric(cv0) * c(0.98, 1.10)  # tighten Y1, relax Y2
 )
 res_cv$cv_achieved

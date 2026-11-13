@@ -1,6 +1,7 @@
 # Tests for parametric stratum weights, CDF/PDF/quantile builders -----------
 
 test_that("parametric weights sum to one and match empirical proportions", {
+  skip_on_cran()
   set.seed(11)
   pop <- sim_population(N = 8000, p = 2, q = 2, scenario = "skewed")
   B   <- list(c(2.0, 4.5), c(2.5, 5.5))
